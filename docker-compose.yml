@@ -1,0 +1,44 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: ecommerce-db
+    environment:
+      MYSQL_ROOT_PASSWORD: yasaswi@0209
+      MYSQL_DATABASE: ecommerce
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-pyasaswi@0209"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    # Uncomment below if you want MySQL port accessible on host
+    # ports:
+    #   - "3306:3306"
+
+  backend:
+    build: ./agriculture-backend
+    container_name: agriculture-backend
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: 9090
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/ecommerce?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: yasaswi@0209
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+
+  frontend:
+    build: ./agriculture-front
+    container_name: agriculture-frontend
+    depends_on:
+      - backend
+    ports:
+      - "5173:80"
+    restart: unless-stopped
+
+volumes:
+  mysql_data: {}
